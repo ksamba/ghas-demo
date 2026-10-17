@@ -16,6 +16,20 @@ The prepared Windows tools are installed under
 `%LOCALAPPDATA%\Programs\ghas-demo-tools`. Restart your terminal to pick up user PATH changes.
 The local analysis script also discovers that installation directly.
 
+## Prepared Demo Links
+
+- [Repository](https://github.com/ksamba/ghas-demo)
+- [Vulnerability PR with generated Copilot Autofix suggestion](https://github.com/ksamba/ghas-demo/pull/1)
+- [Human-authored reference fix PR](https://github.com/ksamba/ghas-demo/pull/2)
+- [Code scanning alert](https://github.com/ksamba/ghas-demo/security/code-scanning/1)
+- [Synthetic secret alert, resolved as used in tests](https://github.com/ksamba/ghas-demo/security/secret-scanning/1)
+- [Workflow runs](https://github.com/ksamba/ghas-demo/actions)
+
+Installed tools: GitHub CLI 2.102.0 and CodeQL bundle 2.27.2.
+Node.js 24.14.1 and Git were already installed.
+The Autofix suggestion is deliberately left unapplied for the live demo.
+Repository-level secret scanning and push protection remain enabled.
+
 ## Install and Test
 
 ```powershell
@@ -35,6 +49,9 @@ Do not add hosting, containers, tunnels, or deployment workflows.
 | `main` | Safe baseline using HTML encoding | All pass | No `js/reflected-xss` finding |
 | `demo/vulnerability` | Intentionally removes HTML encoding | Functional tests pass; two security tests fail | `js/reflected-xss` in `src/app.js` |
 | `demo/autofix-reference` | Human-authored reference remediation based on the vulnerable branch | All pass | No `js/reflected-xss` finding |
+| `demo/provider-protection` | Historical synthetic fixture, explicitly authorized test-only bypass | All pass | Safe application |
+| `demo/push-protection-live` | Local-only fresh synthetic fixture for an actually blocked push | All pass | Safe application |
+| `demo/provider-clean` | Clean branch demonstrating a successful push | All pass | Safe application |
 
 Do not merge the vulnerable branch into `main`. The reference fix is a fallback,
 not a claim that Copilot generated it.
@@ -83,72 +100,72 @@ The presence of a reference fix does not prove that Autofix ran.
 
 ## Synthetic Secret Scanning and Push Protection
 
-These demos require a **published custom pattern**. Built-in detectors will not
-recognize an arbitrary training string. Custom-pattern availability must be
-checked in repository settings; do not substitute active credentials.
+Custom patterns are unavailable for this personal repository (GitHub returned
+HTTP 404, "Feature not available in this repository"). The prepared demo instead
+uses a **synthetic, unissued GitHub-token-shaped value** with the documented
+format checksum. It was generated locally, never issued by GitHub, and has no
+account or authentication capability. An actual push was rejected with GH013.
 
-1. Open repository Settings > Advanced Security (labels may vary).
-2. Confirm secret scanning and repository-level push protection are enabled.
-3. Create a custom pattern named `GHAS synthetic training value`.
-4. Set its secret format to `GHAS_TRAINING_ONLY_[0-9a-f]{32}`.
-5. Dry-run and publish the pattern, then enable push protection for the pattern.
-   If dry-run validation needs sample content, create the historical fixture below
-   before publishing and rerun the dry-run.
-6. If custom patterns are unavailable for this repository/account, use a repository
-   with the required entitlement or clearly labeled prepared evidence. Do not
-   claim that this synthetic pattern is protected until a push is actually blocked.
+An arbitrary fake token will not necessarily trigger detection. Do not substitute
+active credentials if GitHub changes its detection behavior.
 
-### Prepare an Existing Alert
+### Existing Alert
 
-Before publishing the custom pattern and enabling its push protection:
+Open [synthetic secret alert #1](https://github.com/ksamba/ghas-demo/security/secret-scanning/1).
+It is **resolved as used in tests**, not an open real-world exposure.
+After push protection rejected the historical fixture, the repository owner
+explicitly approved a one-time `used_in_tests` bypass to seed this alert.
+The bypass did not disable repository protection. Do not repeat it for the live demo.
+
+### Rehearse the Prepared Blocked Push
+
+The local-only branch contains a fresh fixture, distinct from the historical value:
+
+```powershell
+git switch demo/push-protection-live
+git push github demo/push-protection-live
+```
+
+The push must be rejected with GH013 / GitHub Push Protection.
+If it succeeds, the rehearsal failed; investigate settings before presenting.
+
+Show the successful alternative from a separate, clean history:
+
+```powershell
+git switch demo/provider-clean
+git push github demo/provider-clean
+git switch main
+```
+
+The clean branch was already pushed successfully during setup, so repeating its
+push normally reports "Everything up-to-date". For a fresh successful live push,
+start a new branch from `main`, add a harmless note, commit, and push that branch.
+This avoids rewriting commits and preserves the blocked branch for rehearsal.
+A later deletion commit on the blocked branch alone is insufficient because the
+synthetic value would still exist in its pushed history.
+
+### Create Another Fresh Provider Fixture
+
+On a new branch from `main`:
 
 ```powershell
 git switch main
-git switch -c demo/secret-history
-npm.cmd run demo:secret -- historical-secret.txt
-git add fixtures/historical-secret.txt
-git commit -m "demo: add nonfunctional historical training fixture" `
+git switch -c demo/another-push-rehearsal
+npm.cmd run demo:provider-secret
+git add fixtures/provider-training.txt
+git commit -m "demo: add unissued synthetic training fixture" `
   -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
-git push github demo/secret-history
+git push github demo/another-push-rehearsal
 ```
 
-Publish the pattern and wait for scanning to produce the alert. Keep this branch
-unmerged. Explain that the fixture is not an actual leaked credential.
-If push protection is already enabled for this pattern, do not bypass it to seed
-history; use the pattern dry-run or existing rehearsal evidence instead.
+Do not bypass the rejection. The generator refuses to overwrite an existing file.
 
-### Rehearse a Blocked Push
+### Optional Custom-Pattern Version
 
-After the pattern's push protection is active:
-
-```powershell
-git switch main
-git switch -c demo/push-protection-rehearsal
-npm.cmd run demo:secret
-git add fixtures/push-protection.txt
-git commit -m "demo: attempt synthetic training fixture push" `
-  -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
-git push github demo/push-protection-rehearsal
-```
-
-The push must be rejected. If it succeeds, the rehearsal failed: check the
-published pattern and protection settings before presenting. Do not call a
-successful push proof of protection.
-
-For this fresh branch with exactly one new, unpushed commit, remove the synthetic
-file from that commit, retain a harmless explanation file, and push again:
-
-```powershell
-git rm fixtures/push-protection.txt
-Set-Content -LiteralPath fixtures\clean-rehearsal.txt -Value 'Synthetic fixture removed before push.'
-git add fixtures/clean-rehearsal.txt
-git commit --amend --no-edit
-git push github demo/push-protection-rehearsal
-```
-
-Amend only that explicitly prepared local commit, never a shared commit. A later
-deletion commit alone does not remove the matching value from the pushed history.
-Do not bypass protection or disable it merely to make the demo succeed.
+For an eligible repository, the alternative `npm.cmd run demo:secret` creates a
+clearly synthetic value matching `GHAS_TRAINING_ONLY_[0-9a-f]{32}`. Publish a custom
+pattern and enable its push protection before relying on that detector.
+This optional custom-pattern flow is not configured in this repository.
 
 ## Real Credential Response
 

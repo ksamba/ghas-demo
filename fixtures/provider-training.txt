@@ -1,0 +1,7 @@
+SYNTHETIC TRAINING FIXTURES ONLY. These strings were never issued by GitHub.
+They have no account, permissions, or authentication capability.
+Candidates exercise documented token-format checksums without creating a credential.
+synthetic_candidate_1=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
+synthetic_candidate_2=ghp_LWEnXQ95OQCErqjXWzEiGIOSOoqwaU1rW5te
+synthetic_candidate_3=ghp_LWEnXQ95OQCErqjXWzEiGIOSOoqwaU19XiKF
+synthetic_candidate_4=ghp_LWEnXQ95OQCErqjXWzEiGIOSOoqwaU1Rw5TE

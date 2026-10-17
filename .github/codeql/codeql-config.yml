@@ -1,0 +1,5 @@
+name: Training application analysis
+paths:
+  - src
+queries:
+  - uses: security-extended

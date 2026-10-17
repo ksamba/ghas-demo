@@ -1,0 +1,23 @@
+{
+  "name": "ghas-training-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Loopback-only GitHub Advanced Security training sample. Do not deploy.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "test:functional": "node --test test/app.test.js",
+    "test:security": "node --test test/security.test.js",
+    "demo:codeql": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/analyze.ps1",
+    "demo:secret": "node scripts/create-secret-fixture.js",
+    "demo:verify-sarif": "node scripts/verify-sarif.js"
+  },
+  "dependencies": {
+    "escape-html": "^1.0.3",
+    "express": "^5.1.0"
+  }
+}

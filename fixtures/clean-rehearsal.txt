@@ -1,0 +1,2 @@
+This branch contains only a harmless training note.
+No provider-format fixture is present in this branch's commit history.

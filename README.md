@@ -6,7 +6,7 @@ All secret fixtures are synthetic and cannot authenticate anywhere.
 
 ## Requirements
 
-- Node.js 22 or later and npm.
+- Node.js 22.15.0 or later and npm (the synthetic-fixture generator uses built-in CRC32).
 - Git.
 - CodeQL CLI bundle, including JavaScript query packs.
 - GitHub CLI for optional remote configuration; authenticate with `gh auth login`.

@@ -15,5 +15,6 @@ app.get('/hello', (request, response) => {
     return;
   }
 
+  // Safely encode untrusted input before embedding in HTML.
   response.type('html').send(`<h1>Hello, ${escapeHtml(name)}!</h1>`);
 });

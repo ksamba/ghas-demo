@@ -3,6 +3,8 @@ import { join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
 
+//add a comment
+
 const repo = fileURLToPath(new URL('../', import.meta.url));
 const directory = resolve(repo, 'fixtures');
 const filename = process.argv[2] ?? 'push-protection.txt';

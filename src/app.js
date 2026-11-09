@@ -15,6 +15,5 @@ app.get('/hello', (request, response) => {
     return;
   }
 
-  // Intentionally unsafe training branch: never deploy or merge into main.
-  response.type('html').send(`<h1>Hello, ${name}!</h1>`);
+  response.type('html').send(`<h1>Hello, ${escapeHtml(name)}!</h1>`);
 });
